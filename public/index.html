@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VeloHub</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <nav class="tabs">
+      <button class="tab-button" data-tab="bethany">My Bike</button>
+      <button class="tab-button" data-tab="activities">Calendar</button>
+      <button class="tab-button" data-tab="settings">Components</button>
+    </nav>
+
+    <!-- Bethany's Bike Tab -->
+    <div id="bethany-tab" class="tab-content">
+      <div class="card">
+        <h2>Chain</h2>
+        <div id="bethany-chain-content"></div>
+      </div>
+      <div class="card">
+        <h2>Power Meter Battery</h2>
+        <div id="bethany-power-meter-content"></div>
+      </div>
+      <div class="card">
+        <h2>Tubeless Sealant</h2>
+        <div id="bethany-sealant-content"></div>
+      </div>
+      <div class="card">
+        <h2>Di2 System Battery</h2>
+        <div id="bethany-di2-system-content"></div>
+      </div>
+      <div class="card">
+        <h2>Di2 Shifter Battery</h2>
+        <div id="bethany-di2-shifter-content"></div>
+      </div>
+    </div>
+
+    <!-- Activities Tab -->
+    <div id="activities-tab" class="tab-content">
+      <div class="card">
+        <div id="activities-list"></div>
+      </div>
+    </div>
+
+    <!-- Settings Tab -->
+    <div id="settings-tab" class="tab-content">
+      <div class="card">
+        <h2>Chain</h2>
+        <div id="settings-chain-content"></div>
+      </div>
+      <div class="card">
+        <h2>Power Meter Battery</h2>
+        <div id="settings-power-meter-battery-content"></div>
+      </div>
+      <div class="card">
+        <h2>Tubeless Sealant</h2>
+        <div id="settings-tubeless-sealant-content"></div>
+      </div>
+      <div class="card">
+        <h2>Di2 System Battery</h2>
+        <div id="settings-di2-system-battery-content"></div>
+      </div>
+      <div class="card">
+        <h2>Di2 Shifter Battery</h2>
+        <div id="settings-di2-shifter-battery-content"></div>
+      </div>
+      <div class="card">
+        <h2>Strava Integration</h2>
+        <div id="auth-status" class="status-message"></div>
+        <button id="auth-btn" class="btn btn-primary">Connect to Strava</button>
+        <button id="sync-btn" class="btn btn-secondary" style="display: none; margin-top: 10px;">Sync Activities</button>
+        <div id="sync-status" class="status-message" style="margin-top: 10px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Bike Modal -->
+  <div id="bike-modal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Add New Bike</h2>
+      <form id="bike-form">
+        <label>
+          Bike Name: <input type="text" name="name" required>
+        </label>
+        <label>
+          Description: <textarea name="description"></textarea>
+        </label>
+        <button type="submit" class="btn btn-primary">Add Bike</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Component Modal -->
+  <div id="component-modal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Add Component to <span id="modal-bike-name"></span></h2>
+      <form id="component-form">
+        <label>
+          Component Name: <input type="text" name="name" required>
+        </label>
+        <label>
+          Type: 
+          <select name="component_type" required>
+            <option value="">Select type...</option>
+            <option value="Chain">Chain</option>
+            <option value="Tire">Tire</option>
+            <option value="Brake Pad">Brake Pad</option>
+            <option value="Cassette">Cassette</option>
+            <option value="Chainring">Chainring</option>
+            <option value="Cable">Cable</option>
+            <option value="Bottom Bracket">Bottom Bracket</option>
+            <option value="Headset">Headset</option>
+            <option value="Other">Other</option>
+          </select>
+        </label>
+        <label>
+          Install Date: <input type="date" name="install_date">
+        </label>
+        <label>
+          Install Distance (miles): <input type="number" name="install_distance" step="0.01" value="0">
+        </label>
+        <label>
+          Service Interval (miles): <input type="number" name="service_interval_miles" step="0.01">
+        </label>
+        <label>
+          Notes: <textarea name="notes"></textarea>
+        </label>
+        <button type="submit" class="btn btn-primary">Add Component</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
