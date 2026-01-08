@@ -78,6 +78,15 @@ document.getElementById('sync-btn').addEventListener('click', async () => {
     const response = await fetch('/api/strava/sync', { method: 'POST' });
     const data = await response.json();
     
+    if (!response.ok) {
+      // Handle error response
+      const errorMsg = data.details || data.error || 'Sync failed';
+      statusEl.textContent = `Error: ${errorMsg}`;
+      statusEl.className = 'status-message error';
+      console.error('Sync error:', data);
+      return;
+    }
+    
     if (data.success) {
       statusEl.textContent = `Successfully synced ${data.synced} new activities! (${data.skipped} already existed)`;
       statusEl.className = 'status-message success';
@@ -91,6 +100,7 @@ document.getElementById('sync-btn').addEventListener('click', async () => {
   } catch (error) {
     statusEl.textContent = `Error: ${error.message}`;
     statusEl.className = 'status-message error';
+    console.error('Sync error:', error);
   }
 });
 

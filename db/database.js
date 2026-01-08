@@ -25,7 +25,7 @@ async function init() {
     await client.query(`
       CREATE TABLE IF NOT EXISTS activities (
         id SERIAL PRIMARY KEY,
-        strava_id INTEGER UNIQUE NOT NULL,
+        strava_id BIGINT UNIQUE NOT NULL,
         name TEXT,
         distance REAL,
         moving_time INTEGER,
