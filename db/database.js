@@ -1,49 +1,28 @@
-const { sql } = require('@vercel/postgres');
+const { Pool } = require('pg');
 
-// Helper function to safely convert SQL with ? placeholders
-// Since @vercel/postgres uses template literals and we can't easily convert
-// ? placeholders at runtime, we'll use sql.raw() with proper parameter escaping
-function convertQuery(sqlString, params = []) {
-  if (params.length === 0) {
-    return sql.raw(sqlString);
-  }
-  
-  // Escape and replace parameters
-  // This is safe because the parameters come from our code, not direct user input
-  // (user input is already parameterized through the ? placeholders)
-  let query = sqlString;
-  
-  for (const param of params) {
-    let replacement;
-    
-    if (param === null || param === undefined) {
-      replacement = 'NULL';
-    } else if (typeof param === 'string') {
-      // Escape single quotes in strings
-      const escaped = param.replace(/'/g, "''");
-      replacement = `'${escaped}'`;
-    } else if (typeof param === 'number') {
-      replacement = String(param);
-    } else if (typeof param === 'boolean') {
-      replacement = param ? 'TRUE' : 'FALSE';
-    } else {
-      // For other types, convert to string and escape
-      const escaped = String(param).replace(/'/g, "''");
-      replacement = `'${escaped}'`;
-    }
-    
-    // Replace first ? with the escaped parameter
-    query = query.replace('?', replacement);
-  }
-  
-  return sql.raw(query);
+// Create connection pool - works with any PostgreSQL database (including Prisma-hosted)
+// Uses POSTGRES_PRISMA_URL if available (pooled connection), otherwise POSTGRES_URL
+const connectionString = process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL;
+
+if (!connectionString) {
+  console.error('No database connection string found. Please set POSTGRES_PRISMA_URL, POSTGRES_URL, or DATABASE_URL');
 }
+
+const pool = new Pool({
+  connectionString: connectionString,
+  ssl: connectionString && connectionString.includes('sslmode=require') ? { rejectUnauthorized: false } : false,
+  // Connection pool settings for serverless
+  max: 1, // Limit connections for serverless
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000,
+});
 
 // Initialize database tables
 async function init() {
+  const client = await pool.connect();
   try {
     // Activities table - stores Strava activities
-    await sql`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS activities (
         id SERIAL PRIMARY KEY,
         strava_id INTEGER UNIQUE NOT NULL,
@@ -55,20 +34,20 @@ async function init() {
         activity_type TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
-    `;
+    `);
 
     // Bikes table - stores user's bicycles
-    await sql`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS bikes (
         id SERIAL PRIMARY KEY,
         name TEXT NOT NULL,
         description TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
-    `;
+    `);
 
     // Components table - stores components on each bike
-    await sql`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS components (
         id SERIAL PRIMARY KEY,
         bike_id INTEGER NOT NULL,
@@ -81,10 +60,10 @@ async function init() {
         notes TEXT,
         FOREIGN KEY (bike_id) REFERENCES bikes (id) ON DELETE CASCADE
       )
-    `;
+    `);
 
     // Component usage table - links activities to components
-    await sql`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS component_usage (
         id SERIAL PRIMARY KEY,
         component_id INTEGER NOT NULL,
@@ -94,10 +73,10 @@ async function init() {
         FOREIGN KEY (activity_id) REFERENCES activities (id) ON DELETE CASCADE,
         FOREIGN KEY (bike_id) REFERENCES bikes (id) ON DELETE CASCADE
       )
-    `;
+    `);
 
     // Strava tokens table
-    await sql`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS strava_tokens (
         id SERIAL PRIMARY KEY,
         access_token TEXT NOT NULL,
@@ -105,104 +84,126 @@ async function init() {
         expires_at INTEGER,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
-    `;
+    `);
 
     // Component replacements table - tracks when components were replaced
-    await sql`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS component_replacements (
         id SERIAL PRIMARY KEY,
         category TEXT NOT NULL,
         replacement_date TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
-    `;
+    `);
 
     console.log('Database tables initialized successfully');
   } catch (error) {
     // If tables already exist, that's fine - ignore the error
-    // PostgreSQL error code 42P07 means "duplicate_table"
     if (error.code === '42P07' || (error.message && error.message.includes('already exists'))) {
       console.log('Database tables already exist');
     } else {
       console.error('Error initializing database:', error);
       throw error;
     }
+  } finally {
+    client.release();
   }
+}
+
+// Helper function to convert ? placeholders to $1, $2, $3 format (pg package requirement)
+function convertPlaceholders(sqlString, params) {
+  if (params.length === 0) {
+    return sqlString;
+  }
+  
+  let converted = sqlString;
+  let paramIndex = 1;
+  
+  for (let i = 0; i < params.length; i++) {
+    converted = converted.replace('?', `$${paramIndex}`);
+    paramIndex++;
+  }
+  
+  return converted;
 }
 
 // Query function - returns all rows
 async function query(sqlString, params = []) {
+  const client = await pool.connect();
   try {
-    const queryObj = convertQuery(sqlString, params);
-    const result = await queryObj;
-    return result.rows || result;
+    const convertedSql = convertPlaceholders(sqlString, params);
+    const result = await client.query(convertedSql, params);
+    return result.rows;
   } catch (error) {
     console.error('Database query error:', error);
     console.error('SQL:', sqlString);
     console.error('Params:', params);
     throw error;
+  } finally {
+    client.release();
   }
 }
 
 // Run function - for INSERT, UPDATE, DELETE (returns lastID and changes)
 async function run(sqlString, params = []) {
+  const client = await pool.connect();
   try {
-    // For INSERT statements, we need to add RETURNING id to get the inserted ID
+    // For INSERT statements, add RETURNING id to get the inserted ID
     let modifiedSql = sqlString;
     let shouldGetId = false;
     
     if (sqlString.trim().toUpperCase().startsWith('INSERT')) {
       shouldGetId = true;
-      // Check if RETURNING is already in the query
       if (!sqlString.toUpperCase().includes('RETURNING')) {
-        // Add RETURNING id at the end (before any semicolon)
         modifiedSql = sqlString.replace(/;?\s*$/, '') + ' RETURNING id';
       }
     }
     
-    const queryObj = convertQuery(modifiedSql, params);
-    const result = await queryObj;
+    const convertedSql = convertPlaceholders(modifiedSql, params);
+    const result = await client.query(convertedSql, params);
+    const rows = result.rows || [];
     
-    const rows = result.rows || result;
-    const rowCount = result.rowCount || (Array.isArray(rows) ? rows.length : 1);
-    
-    if (shouldGetId && rows && Array.isArray(rows) && rows.length > 0) {
+    if (shouldGetId && rows.length > 0) {
       return {
         id: rows[0].id,
-        changes: rowCount
+        changes: result.rowCount || rows.length
       };
     }
     
     return {
       id: null,
-      changes: rowCount
+      changes: result.rowCount || rows.length
     };
   } catch (error) {
     console.error('Database run error:', error);
     console.error('SQL:', sqlString);
     console.error('Params:', params);
     throw error;
+  } finally {
+    client.release();
   }
 }
 
 // Get function - returns single row
 async function get(sqlString, params = []) {
+  const client = await pool.connect();
   try {
-    const queryObj = convertQuery(sqlString, params);
-    const result = await queryObj;
-    const rows = result.rows || result;
-    return Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+    const convertedSql = convertPlaceholders(sqlString, params);
+    const result = await client.query(convertedSql, params);
+    return result.rows.length > 0 ? result.rows[0] : null;
   } catch (error) {
     console.error('Database get error:', error);
     console.error('SQL:', sqlString);
     console.error('Params:', params);
     throw error;
+  } finally {
+    client.release();
   }
 }
 
-// GetDb function - not needed for Postgres, but kept for compatibility
+// GetDb function - not needed for pg, but kept for compatibility
 function getDb() {
-  return null; // Not applicable for Postgres
+  return pool;
 }
 
 module.exports = {
