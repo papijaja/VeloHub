@@ -24,7 +24,7 @@ router.get('/stats', async (req, res) => {
       const activityData = await db.get(
         `SELECT SUM(distance) as total_distance, SUM(moving_time) as total_time 
          FROM activities 
-         WHERE SUBSTR(start_date, 1, 10) > ? AND activity_type != 'Replacement'`,
+         WHERE SUBSTRING(start_date, 1, 10) > ? AND activity_type != 'Replacement'`,
         [sinceDate]
       );
       

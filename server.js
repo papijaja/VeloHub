@@ -28,13 +28,35 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Initialize database and start server
-db.init().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-    console.log('Make sure to set up your Strava API credentials in .env file');
+// Initialize database and start server (only for local development)
+if (require.main === module) {
+  // This code only runs when server.js is executed directly (local dev)
+  db.init().then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+      console.log('Make sure to set up your Strava API credentials in .env file');
+    });
+  }).catch(err => {
+    console.error('Failed to initialize database:', err);
+    process.exit(1);
   });
-}).catch(err => {
-  console.error('Failed to initialize database:', err);
-  process.exit(1);
-});
+} else {
+  // For Vercel/serverless: initialize database on first request
+  // Using Vercel Postgres (cloud database)
+  let dbInitialized = false;
+  app.use(async (req, res, next) => {
+    if (!dbInitialized) {
+      try {
+        await db.init();
+        dbInitialized = true;
+      } catch (err) {
+        console.error('Failed to initialize database:', err);
+        return res.status(500).json({ error: 'Database initialization failed' });
+      }
+    }
+    next();
+  });
+}
+
+// Export the app for Vercel serverless functions
+module.exports = app;
