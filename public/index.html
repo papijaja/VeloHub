@@ -8,14 +8,9 @@
 </head>
 <body>
   <div class="container">
-    <nav class="tabs">
-      <button class="tab-button" data-tab="bethany">My Bike</button>
-      <button class="tab-button" data-tab="activities">Calendar</button>
-      <button class="tab-button" data-tab="settings">Components</button>
-    </nav>
-
     <!-- Bethany's Bike Tab -->
     <div id="bethany-tab" class="tab-content">
+      <button id="sync-btn-bike-tab" class="btn btn-secondary" style="width: 100%; margin-bottom: 20px;">Sync Activities</button>
       <div class="card">
         <h2>Chain</h2>
         <div id="bethany-chain-content"></div>
@@ -75,6 +70,12 @@
         <div id="sync-status" class="status-message" style="margin-top: 10px;"></div>
       </div>
     </div>
+
+    <nav class="tabs">
+      <button class="tab-button" data-tab="bethany">My Bike</button>
+      <button class="tab-button" data-tab="activities">Calendar</button>
+      <button class="tab-button" data-tab="settings">Components</button>
+    </nav>
   </div>
 
   <!-- Add Bike Modal -->

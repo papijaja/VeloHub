@@ -67,29 +67,32 @@ document.getElementById('auth-btn').addEventListener('click', async () => {
   }
 });
 
-// Sync activities
-document.getElementById('sync-btn').addEventListener('click', async () => {
-  const statusEl = document.getElementById('sync-status');
-  statusEl.textContent = 'Syncing activities...';
-  statusEl.className = 'status-message info';
-  statusEl.style.display = 'block';
-  
+// Shared sync activities function
+async function syncActivities(statusEl = null) {
+  // Use provided status element or default to the one in Components tab
+  const defaultStatusEl = document.getElementById('sync-status');
+  const targetStatusEl = statusEl || defaultStatusEl;
+
+  targetStatusEl.textContent = 'Syncing activities...';
+  targetStatusEl.className = 'status-message info';
+  targetStatusEl.style.display = 'block';
+
   try {
     const response = await fetch('/api/strava/sync', { method: 'POST' });
     const data = await response.json();
-    
+
     if (!response.ok) {
       // Handle error response
       const errorMsg = data.details || data.error || 'Sync failed';
-      statusEl.textContent = `Error: ${errorMsg}`;
-      statusEl.className = 'status-message error';
+      targetStatusEl.textContent = `Error: ${errorMsg}`;
+      targetStatusEl.className = 'status-message error';
       console.error('Sync error:', data);
       return;
     }
-    
+
     if (data.success) {
-      statusEl.textContent = `Successfully synced ${data.synced} new activities! (${data.skipped} already existed)`;
-      statusEl.className = 'status-message success';
+      targetStatusEl.textContent = `Successfully synced ${data.synced} new activities! (${data.skipped} already existed)`;
+      targetStatusEl.className = 'status-message success';
       // Reload activities if on that tab
       if (document.getElementById('activities-tab').classList.contains('active')) {
         loadActivities();
@@ -98,10 +101,34 @@ document.getElementById('sync-btn').addEventListener('click', async () => {
       throw new Error(data.error || 'Sync failed');
     }
   } catch (error) {
-    statusEl.textContent = `Error: ${error.message}`;
-    statusEl.className = 'status-message error';
+    targetStatusEl.textContent = `Error: ${error.message}`;
+    targetStatusEl.className = 'status-message error';
     console.error('Sync error:', error);
   }
+}
+
+// Sync activities (original button in Components tab)
+document.getElementById('sync-btn').addEventListener('click', async () => {
+  await syncActivities();
+});
+
+// Sync activities (new button in My Bike tab)
+document.getElementById('sync-btn-bike-tab').addEventListener('click', async () => {
+  // Create or use a status element for the bike tab
+  let statusEl = document.getElementById('sync-status-bike-tab');
+  if (!statusEl) {
+    // Create a temporary status element for the bike tab
+    statusEl = document.createElement('div');
+    statusEl.id = 'sync-status-bike-tab';
+    statusEl.className = 'status-message';
+    statusEl.style.marginTop = '10px';
+
+    // Insert it after the sync button
+    const button = document.getElementById('sync-btn-bike-tab');
+    button.parentNode.insertBefore(statusEl, button.nextSibling);
+  }
+
+  await syncActivities(statusEl);
 });
 
 // Check authentication status

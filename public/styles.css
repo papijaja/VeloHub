@@ -36,7 +36,7 @@ header p {
 .tabs {
   display: flex;
   gap: 10px;
-  margin-bottom: 20px;
+  margin-top: 20px;
   background: white;
   padding: 10px;
   border-radius: 10px;
@@ -438,7 +438,14 @@ form label textarea {
 
 @media (max-width: 768px) {
   .tabs {
-    flex-direction: column;
+    /* Keep tabs horizontal on mobile, but allow wrapping if needed */
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .tab-button {
+    min-width: 80px;
+    flex: 0 1 auto;
   }
   
   .stats-grid {
