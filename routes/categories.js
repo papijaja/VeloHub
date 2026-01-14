@@ -115,8 +115,15 @@ router.post('/replace', async (req, res) => {
       return res.status(400).json({ error: 'Invalid category' });
     }
 
-    // Use provided date or default to today
-    const replacementDate = date || new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    // Use provided date or default to today in Pacific timezone
+    // Frontend should always send Pacific date, but fallback to Pacific time if not provided
+    let replacementDate = date;
+    if (!replacementDate) {
+      // Get current date in Pacific timezone (YYYY-MM-DD format)
+      const now = new Date();
+      const pacificDateStr = now.toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
+      replacementDate = pacificDateStr;
+    }
 
     // Only record in component_replacements table if this is NOT calendar-only (i.e., not just for topped off tracking)
     if (!calendarOnly) {

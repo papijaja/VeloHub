@@ -681,8 +681,13 @@ async function loadCategoryStats() {
               // Handle both formats: string (old) or object (new)
               const date = typeof item === 'string' ? item : item.date;
               const type = typeof item === 'object' ? item.type : 'replacement';
-              const dateObj = new Date(date + 'T00:00:00');
-              const formattedDate = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+              // Format date in Pacific timezone
+              const formattedDate = new Date(date + 'T00:00:00').toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                timeZone: 'America/Los_Angeles'
+              });
               
               // Display "Topped off (date)" for topped off events, regular date for replacements
               return type === 'toppedOff' ? `Topped off (${formattedDate})` : formattedDate;
@@ -787,6 +792,12 @@ async function loadCategoryStats() {
   }
 }
 
+// Helper function to get current date in Pacific timezone (YYYY-MM-DD format)
+function getPacificDate() {
+  const now = new Date();
+  return now.toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' }); // Returns YYYY-MM-DD format
+}
+
 // Handle topped off button click
 async function handleToppedOff(category) {
   try {
@@ -794,10 +805,13 @@ async function handleToppedOff(category) {
     console.log('Topped Off button clicked for category:', category);
     console.log('Making API call to /api/categories/replace');
 
+    // Use Pacific time date
+    const pacificDate = getPacificDate();
+
     const response = await fetch('/api/categories/replace', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ category, toppedOff: true, calendarOnly: true })
+      body: JSON.stringify({ category, date: pacificDate, toppedOff: true, calendarOnly: true })
     });
 
     console.log('API response status:', response.status);
@@ -914,7 +928,10 @@ async function handleReplacement(category, date = null) {
   } else if (category === 'Power Meter Battery' || category === 'Di2 System Battery') {
     actionText = 'recharged';
   }
-  const dateText = date ? ` on ${new Date(date).toLocaleDateString()}` : ' today';
+  
+  // Use Pacific time date if no date provided
+  const pacificDate = date || getPacificDate();
+  const dateText = date ? ` on ${new Date(date + 'T00:00:00').toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles' })}` : ' today';
   
   if (!confirm(`Mark ${category} as ${actionText}${dateText}? This will reset the counter.`)) {
     return;
@@ -924,7 +941,7 @@ async function handleReplacement(category, date = null) {
     const response = await fetch('/api/categories/replace', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ category, date })
+      body: JSON.stringify({ category, date: pacificDate })
     });
     
     const data = await response.json();
