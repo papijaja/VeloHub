@@ -178,4 +178,36 @@ router.post('/replace', async (req, res) => {
   }
 });
 
+// Delete replacement history for a category
+router.delete('/history/:category', async (req, res) => {
+  try {
+    const { category } = req.params;
+
+    if (!category || !CATEGORIES.includes(category)) {
+      return res.status(400).json({ error: 'Invalid category' });
+    }
+
+    // Delete all replacement records from component_replacements table
+    await db.run(
+      'DELETE FROM component_replacements WHERE category = ?',
+      [category]
+    );
+
+    // For Chain category, also delete related replacement activities from activities table
+    if (category === 'Chain') {
+      await db.run(
+        `DELETE FROM activities 
+         WHERE activity_type = 'Replacement' 
+         AND (name = 'Chain Topped Off' OR name = 'Chain Rewaxed')`,
+        []
+      );
+    }
+
+    res.json({ success: true, message: `Replacement history cleared for ${category}` });
+  } catch (error) {
+    console.error('Error deleting replacement history:', error);
+    res.status(500).json({ error: 'Failed to delete replacement history' });
+  }
+});
+
 module.exports = router;

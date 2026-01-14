@@ -740,7 +740,10 @@ async function loadCategoryStats() {
             </div>
             <div style="border-top: 1px solid #e2e8f0; padding-top: 15px;">
               ${waxPotUsageHtml}
-              <strong style="font-size: 1.1em; display: block; margin-bottom: 10px;">Replacement History:</strong>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <strong style="font-size: 1.1em;">Replacement History:</strong>
+                <button class="btn btn-danger btn-small reset-history-btn" data-category="${name}" style="font-size: 0.8em; padding: 4px 8px;">Reset History</button>
+              </div>
               <div style="font-size: 0.95em; color: #4a5568; line-height: 1.6;">
                 ${historyList}
               </div>
@@ -770,6 +773,12 @@ async function loadCategoryStats() {
         const toppedOffBtn = contentEl.querySelector('.topped-off-btn');
         if (toppedOffBtn) {
           toppedOffBtn.addEventListener('click', () => handleToppedOff(name));
+        }
+
+        // Add event listener to reset history button
+        const resetHistoryBtn = contentEl.querySelector('.reset-history-btn');
+        if (resetHistoryBtn) {
+          resetHistoryBtn.addEventListener('click', () => handleResetHistory(name));
         }
       }
     });
@@ -854,6 +863,46 @@ async function handleResetWaxPot(category) {
   } catch (error) {
     console.error('Error resetting wax pot:', error);
     alert('Error resetting wax pot: ' + error.message);
+  }
+}
+
+// Handle reset history button click
+async function handleResetHistory(category) {
+  // Confirm with user
+  const confirmed = confirm(`Are you sure you want to delete all replacement history for ${category}? This action cannot be undone.`);
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/categories/history/${encodeURIComponent(category)}`, {
+      method: 'DELETE'
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to reset history');
+    }
+
+    const data = await response.json();
+
+    if (data.success) {
+      // Reload category stats to update the display
+      await loadCategoryStats();
+
+      // Reload activities if on activities tab (to update calendar)
+      if (document.getElementById('activities-tab').classList.contains('active')) {
+        loadActivities();
+      }
+
+      // Show success message
+      alert(`Replacement history for ${category} has been cleared.`);
+    } else {
+      throw new Error(data.error || 'Failed to reset history');
+    }
+  } catch (error) {
+    console.error('Error resetting history:', error);
+    alert('Error resetting history: ' + error.message);
   }
 }
 
