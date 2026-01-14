@@ -39,7 +39,7 @@ body {
 
 header {
   text-align: center;
-  color: var(--forest-green);
+  color: black;
   margin-bottom: 40px;
   padding: 20px 0;
 }
@@ -50,7 +50,7 @@ header h1 {
   margin-bottom: 10px;
   font-weight: 400;
   letter-spacing: -0.5px;
-  color: var(--forest-green);
+  color: black;
 }
 
 header p {
