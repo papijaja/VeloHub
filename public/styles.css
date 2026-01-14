@@ -661,12 +661,16 @@ form label textarea {
   .reset-history-btn {
     font-size: 0.75em !important;
     padding: 6px 12px !important;
+    vertical-align: middle;
+    line-height: 1.4;
   }
   
   /* Wax Pot Usage section */
   .reset-wax-pot-btn {
     font-size: 0.75em !important;
     padding: 5px 10px !important;
+    vertical-align: middle;
+    line-height: 1.4;
   }
   
   /* Text sizing for better readability */

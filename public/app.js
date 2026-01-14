@@ -728,10 +728,12 @@ async function loadCategoryStats() {
           const waxPotPercent = Math.min((replacementCount / maxWaxPot) * 100, 100);
           waxPotUsageHtml = `
             <div style="margin-bottom: 20px;">
-              <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 5px; flex-wrap: wrap; gap: 8px;">
-                <strong>Wax Pot Usage:</strong>
-                <span>${replacementCount} / ${maxWaxPot}</span>
-                <button class="btn btn-danger btn-small reset-wax-pot-btn" data-category="${name}">Reset Wax Pot</button>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; flex-wrap: wrap; gap: 8px;">
+                <strong style="display: flex; align-items: center;">Wax Pot Usage:</strong>
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                  <span style="display: flex; align-items: center;">${replacementCount} / ${maxWaxPot}</span>
+                  <button class="btn btn-danger btn-small reset-wax-pot-btn" data-category="${name}" style="display: flex; align-items: center;">Reset Wax Pot</button>
+                </div>
               </div>
               <div class="progress-bar-container">
                 <div class="progress-bar-fill" style="width: ${waxPotPercent}%; background: linear-gradient(90deg, #D4C5A9 0%, #C4B99B 100%);"></div>
@@ -749,9 +751,9 @@ async function loadCategoryStats() {
             </div>
             <div style="border-top: 1px solid #e2e8f0; padding-top: 15px;">
               ${waxPotUsageHtml}
-              <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
-                <strong style="font-size: 1.1em;">Replacement History:</strong>
-                <button class="btn btn-danger btn-small reset-history-btn" data-category="${name}">Reset History</button>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+                <strong style="font-size: 1.1em; display: flex; align-items: center;">Replacement History:</strong>
+                <button class="btn btn-danger btn-small reset-history-btn" data-category="${name}" style="display: flex; align-items: center;">Reset History</button>
               </div>
               <div style="font-size: 0.95em; color: #4a5568; line-height: 1.6;">
                 ${historyList}
