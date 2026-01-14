@@ -201,6 +201,8 @@ header p {
   margin-bottom: 18px;
   border: 1px solid;
   font-size: 0.9em;
+  display: none;
+  min-height: 0;
 }
 
 .status-message.success {

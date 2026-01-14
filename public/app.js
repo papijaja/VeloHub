@@ -194,18 +194,24 @@ async function checkAuthStatus() {
     const data = await response.json();
     
     if (data.hasToken) {
-      document.getElementById('auth-status').textContent = '✅ Connected to Strava';
-      document.getElementById('auth-status').className = 'status-message success';
+      const authStatusEl = document.getElementById('auth-status');
+      authStatusEl.textContent = '✅ Connected to Strava';
+      authStatusEl.className = 'status-message success';
+      authStatusEl.style.display = 'block';
       document.getElementById('sync-btn').style.display = 'inline-block';
       document.getElementById('auth-btn').textContent = 'Re-authenticate';
     } else {
-      document.getElementById('auth-status').textContent = 'Not connected to Strava';
-      document.getElementById('auth-status').className = 'status-message info';
+      const authStatusEl = document.getElementById('auth-status');
+      authStatusEl.textContent = 'Not connected to Strava';
+      authStatusEl.className = 'status-message info';
+      authStatusEl.style.display = 'block';
     }
   } catch (error) {
     // Not authenticated
-    document.getElementById('auth-status').textContent = 'Not connected to Strava';
-    document.getElementById('auth-status').className = 'status-message info';
+    const authStatusEl = document.getElementById('auth-status');
+    authStatusEl.textContent = 'Not connected to Strava';
+    authStatusEl.className = 'status-message info';
+    authStatusEl.style.display = 'block';
   }
   
   // Check for auth callback
