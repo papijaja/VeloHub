@@ -116,8 +116,9 @@ router.post('/replace', async (req, res) => {
       // Use different activity names based on whether it's topped off or rewaxed
       let activityName;
       if (category === 'Chain') {
+        console.log('Chain activity creation - toppedOff:', toppedOff, 'type:', typeof toppedOff, 'truthy:', !!toppedOff);
         activityName = (toppedOff === true || toppedOff === 'true') ? `${category} Topped Off` : `${category} Rewaxed`;
-        console.log('Creating Chain activity:', activityName, 'toppedOff:', toppedOff, 'calendarOnly:', calendarOnly);
+        console.log('Creating Chain activity:', activityName, 'final toppedOff check result:', (toppedOff === true || toppedOff === 'true'));
       } else if (category === 'Power Meter Battery' || category === 'Di2 System Battery') {
         activityName = `${category} recharged`;
       } else {
