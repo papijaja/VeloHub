@@ -675,10 +675,17 @@ async function loadCategoryStats() {
         const categoryHistory = history[name] || [];
         
         // Format dates for display
+        // Handle both old format (array of strings) and new format (array of objects with date and type)
         const historyList = categoryHistory.length > 0 
-          ? categoryHistory.map(date => {
+          ? categoryHistory.map(item => {
+              // Handle both formats: string (old) or object (new)
+              const date = typeof item === 'string' ? item : item.date;
+              const type = typeof item === 'object' ? item.type : 'replacement';
               const dateObj = new Date(date + 'T00:00:00');
-              return dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+              const formattedDate = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+              
+              // Display "Topped off (date)" for topped off events, regular date for replacements
+              return type === 'toppedOff' ? `Topped off (${formattedDate})` : formattedDate;
             }).join('<br>')
           : '<em style="color: #888;">No replacements recorded</em>';
         
@@ -690,10 +697,21 @@ async function loadCategoryStats() {
           const regularResetKey = `waxPotReset_${name}`;
           const regularResetTimestamp = localStorage.getItem(regularResetKey);
 
+          // Filter to only actual replacements (exclude topped off events) and handle both old/new formats
+          const actualReplacements = categoryHistory.filter(item => {
+            const date = typeof item === 'string' ? item : item.date;
+            const type = typeof item === 'object' ? item.type : 'replacement';
+            // Only count actual replacements, not topped off events
+            return type === 'replacement';
+          });
+
           // Count replacements after reset timestamp (or all if no reset)
           const replacementCount = regularResetTimestamp
-            ? categoryHistory.filter(date => new Date(date + 'T00:00:00') > new Date(regularResetTimestamp)).length
-            : categoryHistory.length;
+            ? actualReplacements.filter(item => {
+                const date = typeof item === 'string' ? item : item.date;
+                return new Date(date + 'T00:00:00') > new Date(regularResetTimestamp);
+              }).length
+            : actualReplacements.length;
 
           const maxWaxPot = 30;
           const waxPotPercent = Math.min((replacementCount / maxWaxPot) * 100, 100);

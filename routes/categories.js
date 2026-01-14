@@ -63,7 +63,38 @@ router.get('/history', async (req, res) => {
         [category]
       );
       
-      history[category] = replacements.map(r => r.replacement_date);
+      // For Chain category, also include "Topped Off" events from activities table
+      if (category === 'Chain') {
+        const toppedOffEvents = await db.query(
+          `SELECT DATE(start_date) as event_date 
+           FROM activities 
+           WHERE activity_type = 'Replacement' 
+           AND name = 'Chain Topped Off' 
+           ORDER BY start_date DESC`,
+          []
+        );
+        
+        // Combine regular replacements and topped off events
+        const allEvents = [
+          ...replacements.map(r => ({ date: r.replacement_date, type: 'replacement' })),
+          ...toppedOffEvents.map(e => ({ date: e.event_date, type: 'toppedOff' }))
+        ];
+        
+        // Sort by date descending and remove duplicates (keep topped off if same date)
+        const eventMap = new Map();
+        allEvents.forEach(event => {
+          const existing = eventMap.get(event.date);
+          if (!existing || event.type === 'toppedOff') {
+            eventMap.set(event.date, event);
+          }
+        });
+        
+        history[category] = Array.from(eventMap.values())
+          .sort((a, b) => new Date(b.date) - new Date(a.date))
+          .map(e => ({ date: e.date, type: e.type }));
+      } else {
+        history[category] = replacements.map(r => ({ date: r.replacement_date, type: 'replacement' }));
+      }
     }
     
     res.json(history);
