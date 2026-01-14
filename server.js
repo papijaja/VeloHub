@@ -18,6 +18,33 @@ app.use(express.json());
 // Serve static files - use absolute path for serverless compatibility
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Reset entire site (delete all data)
+app.post('/api/reset', async (req, res) => {
+  try {
+    console.log('Resetting entire site - deleting all data');
+
+    // Delete all data in the correct order (respecting foreign keys)
+    await db.run('DELETE FROM component_usage');
+    await db.run('DELETE FROM component_replacements');
+    await db.run('DELETE FROM activities');
+    await db.run('DELETE FROM strava_tokens');
+    await db.run('DELETE FROM bikes');
+
+    console.log('All data deleted successfully');
+
+    res.json({
+      success: true,
+      message: 'Site reset successfully. All data has been deleted.'
+    });
+  } catch (error) {
+    console.error('Error resetting site:', error);
+    res.status(500).json({
+      error: 'Failed to reset site',
+      details: error.message
+    });
+  }
+});
+
 // Routes
 app.use('/api/strava', stravaRoutes);
 app.use('/api/activities', activitiesRoutes);
