@@ -125,10 +125,11 @@ header p {
 .card h2 {
   margin-bottom: 24px;
   color: var(--forest-green);
-  font-size: 1.6em;
+  font-size: 2em;
   font-family: 'Georgia', 'Times New Roman', serif;
   font-weight: 400;
   letter-spacing: -0.3px;
+  text-align: center;
 }
 
 .btn {
@@ -622,8 +623,9 @@ form label textarea {
   }
   
   .card h2 {
-    font-size: 1.3em;
+    font-size: 1.6em;
     margin-bottom: 16px;
+    text-align: center;
   }
   
   .stats-grid {
@@ -802,8 +804,9 @@ form label textarea {
   }
   
   .card h2 {
-    font-size: 1.2em;
+    font-size: 1.4em;
     margin-bottom: 14px;
+    text-align: center;
   }
   
   /* Button Group Extra Small */
