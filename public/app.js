@@ -747,8 +747,8 @@ async function loadCategoryStats() {
             <div class="button-group">
               <button class="btn btn-primary replace-btn" data-category="${name}">${buttonText}</button>
               <button class="btn btn-secondary manual-date-btn" data-category="${name}">Choose manual date</button>
-              ${name === 'Chain' ? `<button class="btn btn-info topped-off-btn" data-category="${name}">Topped Off</button>` : ''}
             </div>
+            ${name === 'Chain' ? `<div class="button-group" style="margin-top: 12px;"><button class="btn btn-info topped-off-btn" data-category="${name}">Topped Off</button></div>` : ''}
             <div style="border-top: 1px solid #e2e8f0; padding-top: 15px;">
               ${waxPotUsageHtml}
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
