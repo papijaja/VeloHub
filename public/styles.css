@@ -209,6 +209,13 @@ header p {
   box-shadow: 0 4px 12px rgba(212, 197, 169, 0.4);
 }
 
+/* Sync Activities and Choose manual date buttons - black text */
+#sync-btn,
+#sync-btn-bike-tab,
+.manual-date-btn {
+  color: black !important;
+}
+
 .btn-danger {
   background: #C9A96B;
   color: white;
