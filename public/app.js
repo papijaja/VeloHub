@@ -184,7 +184,11 @@ async function loadActivities() {
   try {
     const response = await fetch('/api/activities');
     const activities = await response.json();
-    
+
+    console.log('Loaded activities:', activities.length, 'total');
+    const replacementActivities = activities.filter(a => a.is_replacement);
+    console.log('Replacement activities:', replacementActivities.length, replacementActivities.map(a => a.name));
+
     if (activities.length === 0) {
       listEl.innerHTML = '<div class="loading">No activities found. Sync with Strava to get started!</div>';
       return;
@@ -401,9 +405,8 @@ const componentModal = document.getElementById('component-modal');
 const bikeForm = document.getElementById('bike-form');
 const componentForm = document.getElementById('component-form');
 
-document.getElementById('add-bike-btn').addEventListener('click', () => {
-  bikeModal.style.display = 'block';
-});
+// Note: Add Bike functionality not currently implemented in UI
+// Removed event listener for non-existent 'add-bike-btn'
 
 document.querySelectorAll('.close').forEach(closeBtn => {
   closeBtn.addEventListener('click', (e) => {
@@ -491,9 +494,20 @@ async function loadBethanyBikeStats() {
     const response = await fetch('/api/categories/stats');
     const stats = await response.json();
     
+    // Check if chain is topped off
+    const chainToppedOff = localStorage.getItem('chainToppedOff') === 'true';
+
     // Map category names to Bethany's Bike tab IDs with maximum values for progress bars
     const categories = [
-      { name: 'Chain', id: 'chain', maxMiles: 375, maxHours: 22, showMileage: true, useDays: false },
+      {
+        name: 'Chain',
+        id: 'chain',
+        maxMiles: chainToppedOff ? 200 : 375,
+        maxHours: chainToppedOff ? 10 : 22,
+        showMileage: true,
+        showTime: true, // Always show time bar for Chain
+        useDays: false
+      },
       { name: 'Power Meter Battery', id: 'power-meter', maxMiles: 3000, maxHours: 300, showMileage: false, useDays: false },
       { name: 'Di2 Shifter Battery', id: 'di2-shifter', maxMiles: 3000, maxHours: 100, showMileage: false, useDays: true, maxDays: 700 },
       { name: 'Di2 System Battery', id: 'di2-system', maxMiles: 750, maxHours: 100, showMileage: true, showTime: false, useDays: false },
@@ -616,14 +630,38 @@ async function loadCategoryStats() {
         // Add Wax Pot Usage progress bar for Chain
         let waxPotUsageHtml = '';
         if (name === 'Chain') {
-          const replacementCount = categoryHistory.length;
+          // Check for topped off reset first, then regular wax pot reset
+          const toppedOffResetKey = `chainToppedOffReset`;
+          const toppedOffResetTimestamp = localStorage.getItem(toppedOffResetKey);
+
+          const regularResetKey = `waxPotReset_${name}`;
+          const regularResetTimestamp = localStorage.getItem(regularResetKey);
+
+          // Use the most recent reset timestamp (topped off takes precedence if more recent)
+          let effectiveResetTimestamp = null;
+          if (toppedOffResetTimestamp && regularResetTimestamp) {
+            effectiveResetTimestamp = new Date(toppedOffResetTimestamp) > new Date(regularResetTimestamp)
+              ? toppedOffResetTimestamp
+              : regularResetTimestamp;
+          } else {
+            effectiveResetTimestamp = toppedOffResetTimestamp || regularResetTimestamp;
+          }
+
+          // Count replacements after reset timestamp (or all if no reset)
+          const replacementCount = effectiveResetTimestamp
+            ? categoryHistory.filter(date => new Date(date + 'T00:00:00') > new Date(effectiveResetTimestamp)).length
+            : categoryHistory.length;
+
           const maxWaxPot = 30;
           const waxPotPercent = Math.min((replacementCount / maxWaxPot) * 100, 100);
           waxPotUsageHtml = `
             <div style="margin-bottom: 20px;">
-              <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                 <strong>Wax Pot Usage:</strong>
-                <span>${replacementCount} / ${maxWaxPot}</span>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <span>${replacementCount} / ${maxWaxPot}</span>
+                  <button class="btn btn-danger btn-small reset-wax-pot-btn" data-category="${name}" style="font-size: 0.8em; padding: 4px 8px;">Reset Wax Pot</button>
+                </div>
               </div>
               <div class="progress-bar-container">
                 <div class="progress-bar-fill" style="width: ${waxPotPercent}%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);"></div>
@@ -637,6 +675,7 @@ async function loadCategoryStats() {
             <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
               <button class="btn btn-primary replace-btn" data-category="${name}">${buttonText}</button>
               <button class="btn btn-secondary manual-date-btn" data-category="${name}">Choose manual date</button>
+              ${name === 'Chain' ? `<button class="btn btn-info topped-off-btn" data-category="${name}">Topped Off</button>` : ''}
             </div>
             <div style="border-top: 1px solid #e2e8f0; padding-top: 15px;">
               ${waxPotUsageHtml}
@@ -659,10 +698,101 @@ async function loadCategoryStats() {
         if (manualDateBtn) {
           manualDateBtn.addEventListener('click', () => openManualDateModal(name));
         }
+
+        // Add event listener to reset wax pot button
+        const resetWaxPotBtn = contentEl.querySelector('.reset-wax-pot-btn');
+        if (resetWaxPotBtn) {
+          resetWaxPotBtn.addEventListener('click', () => handleResetWaxPot(name));
+        }
+
+        // Add event listener to topped off button
+        const toppedOffBtn = contentEl.querySelector('.topped-off-btn');
+        if (toppedOffBtn) {
+          toppedOffBtn.addEventListener('click', () => handleToppedOff(name));
+        }
       }
     });
   } catch (error) {
     console.error('Error loading category stats:', error);
+  }
+}
+
+// Handle topped off button click
+async function handleToppedOff(category) {
+  try {
+    // Create a calendar event for "Chain Topped Off" but don't count it as wax pot usage
+    console.log('Topped Off button clicked for category:', category);
+    console.log('Making API call to /api/categories/replace');
+
+    const response = await fetch('/api/categories/replace', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ category, toppedOff: true, calendarOnly: true })
+    });
+
+    console.log('API response status:', response.status);
+    console.log('API response ok:', response.ok);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('API call failed:', response.status, errorText);
+      throw new Error(`API call failed: ${response.status} ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log('API response data:', data);
+
+    if (data.success) {
+      // Store topped off reset timestamp (for counter reset)
+      const resetKey = `chainToppedOffReset`;
+      const resetTimestamp = new Date().toISOString();
+      localStorage.setItem(resetKey, resetTimestamp);
+
+      // Store topped off state in localStorage
+      const toppedOffKey = `chainToppedOff`;
+      localStorage.setItem(toppedOffKey, 'true');
+
+      // Reload stats for both tabs
+      loadCategoryStats();
+      loadBethanyBikeStats();
+
+      // Always reload activities data to ensure calendar events are updated
+      console.log('Reloading activities after topped off');
+      loadActivities();
+
+      // Show success message
+      alert('Silca Super Secret is good for 200 miles (10 hours) of riding.');
+    } else {
+      throw new Error(data.error || 'Failed to mark as topped off');
+    }
+  } catch (error) {
+    console.error('Error marking chain as topped off:', error);
+    alert('Error marking chain as topped off: ' + error.message);
+  }
+}
+
+// Handle reset wax pot button click
+async function handleResetWaxPot(category) {
+  // Confirm with user
+  const confirmed = confirm(`Are you sure you want to reset the Wax Pot usage counter for ${category}? The replacement history will be preserved, but the counter will start from zero.`);
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    // Store reset timestamp in localStorage (keyed by category)
+    const resetKey = `waxPotReset_${category}`;
+    const resetTimestamp = new Date().toISOString();
+    localStorage.setItem(resetKey, resetTimestamp);
+
+    // Reload category stats to update the display
+    await loadCategoryStats();
+
+    // Show success message
+    alert('Wax Pot usage counter has been reset! The replacement history is preserved.');
+  } catch (error) {
+    console.error('Error resetting wax pot:', error);
+    alert('Error resetting wax pot: ' + error.message);
   }
 }
 
@@ -690,6 +820,11 @@ async function handleReplacement(category, date = null) {
     const data = await response.json();
     
     if (data.success) {
+      // If this is a chain replacement, clear the topped off state
+      if (category === 'Chain') {
+        localStorage.removeItem('chainToppedOff');
+      }
+
       // Reload stats for both tabs
       loadCategoryStats();
       loadBethanyBikeStats();

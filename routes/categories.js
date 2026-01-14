@@ -76,46 +76,54 @@ router.get('/history', async (req, res) => {
 // Record a replacement
 router.post('/replace', async (req, res) => {
   try {
-    const { category, date } = req.body;
-    
+    const { category, date, toppedOff, calendarOnly } = req.body;
+
+    console.log('Recording replacement:', { category, date, toppedOff, calendarOnly, toppedOffType: typeof toppedOff });
+
     if (!category || !CATEGORIES.includes(category)) {
       return res.status(400).json({ error: 'Invalid category' });
     }
-    
+
     // Use provided date or default to today
     const replacementDate = date || new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-    
-    // Record the replacement
-    await db.run(
-      'INSERT INTO component_replacements (category, replacement_date) VALUES (?, ?)',
-      [category, replacementDate]
-    );
-    
+
+    // Only record in component_replacements table if this is NOT calendar-only (i.e., not just for topped off tracking)
+    if (!calendarOnly) {
+      await db.run(
+        'INSERT INTO component_replacements (category, replacement_date) VALUES (?, ?)',
+        [category, replacementDate]
+      );
+    }
+
     // Check if a replacement activity already exists for this category and date
     const existingReplacement = await db.get(
-      `SELECT id FROM activities 
-       WHERE activity_type = 'Replacement' 
-       AND name LIKE ? 
+      `SELECT id FROM activities
+       WHERE activity_type = 'Replacement'
+       AND name LIKE ?
        AND DATE(start_date) = ?`,
       [`%${category}%`, replacementDate]
     );
-    
-    // Only create a replacement activity if one doesn't already exist for this date
-    if (!existingReplacement) {
+
+    // Always create a replacement activity for topped off actions (even if calendarOnly)
+    // For regular replacements, only create if one doesn't already exist for this date
+    const shouldCreateActivity = calendarOnly || !existingReplacement;
+
+    if (shouldCreateActivity) {
       // Create a special activity entry for the replacement
       // Use a special strava_id that won't conflict (negative number)
       const replacementStravaId = -Date.now(); // Use timestamp as unique negative ID
-      
-      // Use "Rewaxed" for Chain, "recharged" for Power Meter Battery and Di2 System Battery, "replaced" for others
+
+      // Use different activity names based on whether it's topped off or rewaxed
       let activityName;
       if (category === 'Chain') {
-        activityName = `${category} Rewaxed`;
+        activityName = (toppedOff === true || toppedOff === 'true') ? `${category} Topped Off` : `${category} Rewaxed`;
+        console.log('Creating Chain activity:', activityName, 'toppedOff:', toppedOff, 'calendarOnly:', calendarOnly);
       } else if (category === 'Power Meter Battery' || category === 'Di2 System Battery') {
         activityName = `${category} recharged`;
       } else {
         activityName = `${category} replaced`;
       }
-      
+
       await db.run(
         `INSERT INTO activities (strava_id, name, distance, moving_time, elapsed_time, start_date, activity_type)
          VALUES (?, ?, 0, 0, 0, ?, 'Replacement')`,
@@ -125,9 +133,13 @@ router.post('/replace', async (req, res) => {
           `${replacementDate}T00:00:00Z`
         ]
       );
+
+      console.log('Created activity:', activityName, 'for date:', replacementDate);
+    } else {
+      console.log('Skipping activity creation - already exists for date:', replacementDate);
     }
-    
-    res.json({ success: true, replacementDate });
+
+    res.json({ success: true, replacementDate, toppedOff: !!toppedOff });
   } catch (error) {
     console.error('Error recording replacement:', error);
     res.status(500).json({ error: 'Failed to record replacement' });
