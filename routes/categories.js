@@ -66,7 +66,7 @@ router.get('/history', async (req, res) => {
       // For Chain category, also include "Topped Off" events from activities table
       if (category === 'Chain') {
         const toppedOffEvents = await db.query(
-          `SELECT DATE(start_date) as event_date 
+          `SELECT SUBSTRING(start_date, 1, 10) as event_date 
            FROM activities 
            WHERE activity_type = 'Replacement' 
            AND name = 'Chain Topped Off' 
