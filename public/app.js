@@ -582,9 +582,9 @@ async function loadBethanyBikeStats() {
           const mileagePercent = Math.min((stat.mileage / maxMiles) * 100, 100);
           html += `
             <div style="margin-bottom: 20px;">
-              <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                <strong>Mileage:</strong>
-                <span>${stat.mileage} / ${maxMiles} miles</span>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <strong style="color: #5A5A5A; font-weight: 500;">Mileage:</strong>
+                <span style="color: #6B6B6B;">${stat.mileage} / ${maxMiles} miles</span>
               </div>
               <div class="progress-bar-container">
                 <div class="progress-bar-fill" style="width: ${mileagePercent}%; background: linear-gradient(90deg, #4A6B5A 0%, #1B4332 100%);"></div>
@@ -609,9 +609,9 @@ async function loadBethanyBikeStats() {
           
           html += `
             <div>
-              <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                <strong>Days:</strong>
-                <span>${diffDays} / ${maxDays} days</span>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <strong style="color: #5A5A5A; font-weight: 500;">Days:</strong>
+                <span style="color: #6B6B6B;">${diffDays} / ${maxDays} days</span>
               </div>
               <div class="progress-bar-container">
                 <div class="progress-bar-fill" style="width: ${daysPercent}%; background: linear-gradient(90deg, #D4C5A9 0%, #C4B99B 100%);"></div>
@@ -629,9 +629,9 @@ async function loadBethanyBikeStats() {
           
           html += `
             <div>
-              <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                <strong>Time:</strong>
-                <span>${stat.time} / ${maxHours}:00</span>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <strong style="color: #5A5A5A; font-weight: 500;">Time:</strong>
+                <span style="color: #6B6B6B;">${stat.time} / ${maxHours}:00</span>
               </div>
               <div class="progress-bar-container">
                 <div class="progress-bar-fill" style="width: ${timePercent}%; background: linear-gradient(90deg, #D4C5A9 0%, #C4B99B 100%);"></div>
