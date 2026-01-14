@@ -26,7 +26,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
   background: var(--cream-white);
   min-height: 100vh;
-  padding: 20px 20px 100px 20px;
+  padding: 30px 30px 100px 30px;
   color: var(--warm-grey-dark);
   line-height: 1.6;
 }
@@ -34,6 +34,7 @@ body {
 .container {
   max-width: 1200px;
   margin: 0 auto;
+  padding: 0 10px;
 }
 
 header {
@@ -113,6 +114,8 @@ header p {
   border-radius: 16px;
   padding: 30px;
   margin-bottom: 24px;
+  margin-left: 8px;
+  margin-right: 8px;
   box-shadow: 0 2px 12px var(--shadow-soft), 0 1px 3px var(--shadow-warm);
   border: 1px solid var(--warm-grey-very-light);
   transition: box-shadow 0.3s ease;
@@ -595,11 +598,17 @@ form label textarea {
   }
 
   body {
-    padding: 12px 12px 90px 12px;
+    padding: 20px 20px 90px 20px;
   }
   
   .container {
     max-width: 100%;
+    padding: 0 8px;
+  }
+  
+  .card {
+    margin-left: 4px;
+    margin-right: 4px;
   }
   
   header {
@@ -791,7 +800,16 @@ form label textarea {
 /* Extra small mobile devices */
 @media (max-width: 480px) {
   body {
-    padding: 10px 10px 85px 10px;
+    padding: 16px 16px 85px 16px;
+  }
+  
+  .container {
+    padding: 0 4px;
+  }
+  
+  .card {
+    margin-left: 2px;
+    margin-right: 2px;
   }
   
   header h1 {
