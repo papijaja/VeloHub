@@ -685,26 +685,14 @@ async function loadCategoryStats() {
         // Add Wax Pot Usage progress bar for Chain
         let waxPotUsageHtml = '';
         if (name === 'Chain') {
-          // Check for topped off reset first, then regular wax pot reset
-          const toppedOffResetKey = `chainToppedOffReset`;
-          const toppedOffResetTimestamp = localStorage.getItem(toppedOffResetKey);
-
+          // Only use the wax pot reset timestamp (NOT the topped off reset timestamp)
+          // The topped off reset should only affect mileage/time bars, not the wax pot counter
           const regularResetKey = `waxPotReset_${name}`;
           const regularResetTimestamp = localStorage.getItem(regularResetKey);
 
-          // Use the most recent reset timestamp (topped off takes precedence if more recent)
-          let effectiveResetTimestamp = null;
-          if (toppedOffResetTimestamp && regularResetTimestamp) {
-            effectiveResetTimestamp = new Date(toppedOffResetTimestamp) > new Date(regularResetTimestamp)
-              ? toppedOffResetTimestamp
-              : regularResetTimestamp;
-          } else {
-            effectiveResetTimestamp = toppedOffResetTimestamp || regularResetTimestamp;
-          }
-
           // Count replacements after reset timestamp (or all if no reset)
-          const replacementCount = effectiveResetTimestamp
-            ? categoryHistory.filter(date => new Date(date + 'T00:00:00') > new Date(effectiveResetTimestamp)).length
+          const replacementCount = regularResetTimestamp
+            ? categoryHistory.filter(date => new Date(date + 'T00:00:00') > new Date(regularResetTimestamp)).length
             : categoryHistory.length;
 
           const maxWaxPot = 30;
