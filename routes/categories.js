@@ -163,13 +163,18 @@ router.post('/replace', async (req, res) => {
         activityName = `${category} replaced`;
       }
 
+      // Store the date so it displays correctly in Pacific timezone
+      // Use 12:00 UTC (noon) which is 4-5 AM Pacific, ensuring it always shows on the correct calendar day
+      // This avoids DST issues and ensures the date matches between calendar and replacement history
+      const startDateISO = `${replacementDate}T12:00:00Z`;
+      
       await db.run(
         `INSERT INTO activities (strava_id, name, distance, moving_time, elapsed_time, start_date, activity_type)
          VALUES (?, ?, 0, 0, 0, ?, 'Replacement')`,
         [
           replacementStravaId,
           activityName,
-          `${replacementDate}T00:00:00Z`
+          startDateISO
         ]
       );
 
