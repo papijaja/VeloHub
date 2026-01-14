@@ -353,10 +353,9 @@ function createMonthCalendar(monthDate, activitiesByDate) {
         // Check if this is a replacement activity
         if (activity.is_replacement) {
           activityItem.style.background = 'linear-gradient(135deg, #48bb78 0%, #38a169 100%)';
-          // Display "Chain Rewaxed" for Chain replacements, otherwise use the activity name
-          const displayText = activity.name && activity.name.includes('Chain') ? 'Chain Rewaxed' : activity.name;
+          // Use the actual activity name from the database
           activityItem.innerHTML = `
-            <span class="activity-name" style="font-size: 0.85em; text-align: center;">${displayText}</span>
+            <span class="activity-name" style="font-size: 0.85em; text-align: center;">${activity.name}</span>
           `;
         } else {
           activityItem.innerHTML = `
