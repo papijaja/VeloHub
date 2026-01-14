@@ -112,6 +112,62 @@ document.getElementById('sync-btn').addEventListener('click', async () => {
   await syncActivities();
 });
 
+// Reset site button
+document.getElementById('reset-site-btn').addEventListener('click', async () => {
+  const resetStatusEl = document.getElementById('reset-status');
+
+  // Multiple confirmations for safety
+  const confirmed1 = confirm('⚠️ WARNING: This will permanently delete ALL data from the site!');
+  if (!confirmed1) return;
+
+  const confirmed2 = confirm('Are you absolutely sure? This includes:\n• All Strava activities\n• All component replacements\n• All maintenance history\n• Strava authentication tokens');
+  if (!confirmed2) return;
+
+  const confirmed3 = confirm('This action CANNOT be undone. Type "RESET" to confirm:');
+  if (!confirmed3) return;
+
+  const finalConfirm = prompt('Type "RESET" to confirm permanent deletion of all data:');
+  if (finalConfirm !== 'RESET') {
+    alert('Reset cancelled.');
+    return;
+  }
+
+  resetStatusEl.textContent = 'Resetting site...';
+  resetStatusEl.className = 'status-message info';
+  resetStatusEl.style.display = 'block';
+
+  try {
+    const response = await fetch('/api/reset', {
+      method: 'POST'
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.success) {
+      resetStatusEl.textContent = 'Site reset successfully! Reloading...';
+      resetStatusEl.className = 'status-message success';
+
+      // Clear all localStorage
+      localStorage.clear();
+
+      // Reload the page after a short delay
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    } else {
+      throw new Error(data.error || 'Reset failed');
+    }
+  } catch (error) {
+    console.error('Reset error:', error);
+    resetStatusEl.textContent = `Reset failed: ${error.message}`;
+    resetStatusEl.className = 'status-message error';
+  }
+});
+
 // Sync activities (new button in My Bike tab)
 document.getElementById('sync-btn-bike-tab').addEventListener('click', async () => {
   // Create or use a status element for the bike tab
