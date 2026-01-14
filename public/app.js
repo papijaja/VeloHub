@@ -352,7 +352,7 @@ function createMonthCalendar(monthDate, activitiesByDate) {
         
         // Check if this is a replacement activity
         if (activity.is_replacement) {
-          activityItem.style.background = 'linear-gradient(135deg, #48bb78 0%, #38a169 100%)';
+          activityItem.style.background = 'linear-gradient(135deg, #4A6B5A 0%, #1B4332 100%)';
           // Use the actual activity name from the database
           activityItem.innerHTML = `
             <span class="activity-name" style="font-size: 0.85em; text-align: center;">${activity.name}</span>
@@ -587,7 +587,7 @@ async function loadBethanyBikeStats() {
                 <span>${stat.mileage} / ${maxMiles} miles</span>
               </div>
               <div class="progress-bar-container">
-                <div class="progress-bar-fill" style="width: ${mileagePercent}%; background: linear-gradient(90deg, #48bb78 0%, #38a169 100%);"></div>
+                <div class="progress-bar-fill" style="width: ${mileagePercent}%; background: linear-gradient(90deg, #4A6B5A 0%, #1B4332 100%);"></div>
               </div>
             </div>
           `;
@@ -614,7 +614,7 @@ async function loadBethanyBikeStats() {
                 <span>${diffDays} / ${maxDays} days</span>
               </div>
               <div class="progress-bar-container">
-                <div class="progress-bar-fill" style="width: ${daysPercent}%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);"></div>
+                <div class="progress-bar-fill" style="width: ${daysPercent}%; background: linear-gradient(90deg, #D4C5A9 0%, #C4B99B 100%);"></div>
               </div>
             </div>
           `;
@@ -634,7 +634,7 @@ async function loadBethanyBikeStats() {
                 <span>${stat.time} / ${maxHours}:00</span>
               </div>
               <div class="progress-bar-container">
-                <div class="progress-bar-fill" style="width: ${timePercent}%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);"></div>
+                <div class="progress-bar-fill" style="width: ${timePercent}%; background: linear-gradient(90deg, #D4C5A9 0%, #C4B99B 100%);"></div>
               </div>
             </div>
           `;
@@ -730,7 +730,7 @@ async function loadCategoryStats() {
                 </div>
               </div>
               <div class="progress-bar-container">
-                <div class="progress-bar-fill" style="width: ${waxPotPercent}%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);"></div>
+                <div class="progress-bar-fill" style="width: ${waxPotPercent}%; background: linear-gradient(90deg, #D4C5A9 0%, #C4B99B 100%);"></div>
               </div>
             </div>
           `;
