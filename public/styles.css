@@ -195,6 +195,21 @@ header p {
   border-radius: 50px;
 }
 
+.button-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.button-group .btn {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .status-message {
   padding: 14px 18px;
   border-radius: 12px;
@@ -579,15 +594,104 @@ form label textarea {
   }
 
   body {
-    padding: 15px 15px 90px 15px;
+    padding: 12px 12px 90px 12px;
+  }
+  
+  .container {
+    max-width: 100%;
+  }
+  
+  header {
+    margin-bottom: 24px;
+    padding: 12px 0;
+  }
+  
+  header h1 {
+    font-size: 2em;
+    margin-bottom: 8px;
+  }
+  
+  header p {
+    font-size: 1em;
+  }
+  
+  .card {
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+  }
+  
+  .card h2 {
+    font-size: 1.3em;
+    margin-bottom: 16px;
   }
   
   .stats-grid {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
   
   .bikes-list {
     grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  /* Button Group Mobile Optimizations */
+  .button-group {
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: nowrap;
+  }
+  
+  .button-group .btn {
+    padding: 10px 12px;
+    font-size: 0.85em;
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: center;
+  }
+  
+  /* Sync button on My Bike tab */
+  #sync-btn-bike-tab {
+    width: 100%;
+    margin-bottom: 16px;
+  }
+  
+  /* Reset History button in header */
+  .reset-history-btn {
+    font-size: 0.75em !important;
+    padding: 6px 12px !important;
+  }
+  
+  /* Wax Pot Usage section */
+  .reset-wax-pot-btn {
+    font-size: 0.75em !important;
+    padding: 5px 10px !important;
+  }
+  
+  /* Text sizing for better readability */
+  strong {
+    font-size: 0.95em;
+  }
+  
+  /* Replacement History header */
+  .reset-history-btn {
+    white-space: nowrap;
+  }
+  
+  /* Wax Pot Usage section */
+  .reset-wax-pot-btn {
+    white-space: nowrap;
+  }
+  
+  .btn {
+    padding: 10px 20px;
+    font-size: 0.9em;
+  }
+  
+  .btn-small {
+    padding: 6px 12px;
+    font-size: 0.75em;
   }
   
   /* Calendar Mobile Optimizations */
@@ -651,24 +755,86 @@ form label textarea {
     font-size: 0.7em;
     line-height: 1.3;
   }
-
-  header h1 {
-    font-size: 2.2em;
+  
+  /* Status messages */
+  .status-message {
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    font-size: 0.85em;
   }
   
-  .card {
-    padding: 20px;
-    border-radius: 12px;
+  /* Activity items */
+  .activity-item {
+    padding: 14px;
+    margin-bottom: 12px;
   }
   
-  .card h2 {
-    font-size: 1.4em;
-    margin-bottom: 18px;
+  /* Form elements */
+  form label {
+    margin-bottom: 14px;
+  }
+  
+  form label input,
+  form label select,
+  form label textarea {
+    padding: 10px;
+    font-size: 0.95em;
   }
 }
 
 /* Extra small mobile devices */
 @media (max-width: 480px) {
+  body {
+    padding: 10px 10px 85px 10px;
+  }
+  
+  header h1 {
+    font-size: 1.8em;
+  }
+  
+  .card {
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+  
+  .card h2 {
+    font-size: 1.2em;
+    margin-bottom: 14px;
+  }
+  
+  /* Button Group Extra Small */
+  .button-group {
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+  
+  .button-group .btn {
+    padding: 8px 10px;
+    font-size: 0.8em;
+    letter-spacing: 0;
+    min-width: 80px;
+  }
+  
+  /* Ensure buttons don't get too small */
+  .button-group .btn:first-child {
+    flex: 1.2 1 auto;
+  }
+  
+  .button-group .btn:not(:first-child) {
+    flex: 1 1 auto;
+  }
+  
+  .btn {
+    padding: 8px 16px;
+    font-size: 0.85em;
+  }
+  
+  .btn-small {
+    padding: 5px 10px;
+    font-size: 0.7em;
+  }
+  
+  /* Calendar Extra Small */
   .calendar-day {
     min-height: 60px;
     padding: 3px 2px;
@@ -696,11 +862,14 @@ form label textarea {
     gap: 20px;
   }
   
-  body {
-    padding: 12px 12px 85px 12px;
+  /* Status messages */
+  .status-message {
+    padding: 10px 12px;
+    font-size: 0.8em;
   }
   
-  .card {
-    padding: 16px;
+  /* Progress bars */
+  .progress-bar-container {
+    height: 24px;
   }
 }
